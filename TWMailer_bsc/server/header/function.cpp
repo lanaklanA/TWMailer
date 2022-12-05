@@ -189,7 +189,7 @@ void s_list(std::string username, int current_socket, std::string spoolDir) {
    DIR *folder;
    struct dirent *entry;
    int count = 0;
-   std::string output, dirPath = "./spoolDir/" + spoolDir + "/" + username;
+   std::string output, messages, dirPath = "./spoolDir/" + spoolDir + "/" + username;
 
    if((folder = opendir(dirPath.c_str())) == NULL) {
       std::cerr << "Unable to read directory" << std::endl;
@@ -202,9 +202,15 @@ void s_list(std::string username, int current_socket, std::string spoolDir) {
 
    while((entry = readdir(folder))) {
       count++;
-      output.append("[" + std::to_string(count) + "] " + entry->d_name + "\n");
+      messages.append("[" + std::to_string(count) + "] " + entry->d_name + "\n");
    }
-   send(current_socket, output.c_str(), strlen(output.c_str()), 0);
+   output = "[Count of Messages of the User : " + std::to_string(count) + "]\n" + messages;
+   if(count == 0) {
+      std::string errorMessage = "ERR: No Messages of User found";
+      send(current_socket, errorMessage.c_str(), errorMessage.length(), 0);
+   } else {
+      send(current_socket, output.c_str(), strlen(output.c_str()), 0);
+   }
 }
 
 void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::string spoolDir) {
