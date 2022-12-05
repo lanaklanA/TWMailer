@@ -197,13 +197,15 @@ void s_list(std::string username, int current_socket, std::string spoolDir) {
       count++;
       messages.append("[" + std::to_string(count) + "] " + entry->d_name + "\n");
    }
-   output = "[Count of Messages of the User : " + std::to_string(count) + "]\n" + messages;
+   output = "[Count of Messages of the User: " + std::to_string(count) + "]\n" + messages;
    if(count == 0) {
-      std::string errorMessage = "ERR: No Messages of User found";
+      std::string errorMessage = "ERR: No messages found from user";
       send(current_socket, errorMessage.c_str(), errorMessage.length(), 0);
-   } else {
-      send(current_socket, output.c_str(), strlen(output.c_str()), 0);
+      return;
    }
+   
+   send(current_socket, output.c_str(), strlen(output.c_str()), 0);
+   
 }
 
 void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::string spoolDir) {
