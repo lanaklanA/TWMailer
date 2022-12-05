@@ -30,43 +30,36 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // Signal
-void signalHandler(int sig)
-{
-   if (sig == SIGINT)
-   {
+void signalHandler(int sig) {
+
+   if (sig == SIGINT) {
       printf("abort Requested... "); // ignore error
       abortRequested = 1;
 
-      if (new_socket != -1)
-      {
-         if (shutdown(new_socket, SHUT_RDWR) == -1)
-         {
+      if (new_socket != -1) {
+         if (shutdown(new_socket, SHUT_RDWR) == -1) 
             perror("shutdown new_socket");
-         }
-         if (close(new_socket) == -1)
-         {
+         
+         if (close(new_socket) == -1) 
             perror("close new_socket");
-         }
+         
          new_socket = -1;
       }
 
       if (create_socket != -1)
       {
-         if (shutdown(create_socket, SHUT_RDWR) == -1)
-         {
+         if (shutdown(create_socket, SHUT_RDWR) == -1) 
             perror("shutdown create_socket");
-         }
-         if (close(create_socket) == -1)
-         {
+         
+         if (close(create_socket) == -1) 
             perror("close create_socket");
-         }
+         
          create_socket = -1;
       }
    }
    else
-   {
       exit(sig);
-   }
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
