@@ -1,0 +1,109 @@
+///////////////////////////////////////////////////////////////////////////////
+// C++/11 Headers Includes
+#include <iostream>
+#include <string>
+#include <vector>
+
+///////////////////////////////////////////////////////////////////////////////
+// C Headers Includes
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+///////////////////////////////////////////////////////////////////////////////
+// Own Headers Includes
+#include "header/function.h"
+
+int main(int argc, char **argv) {
+   int create_socket, size, isQuit = 0;
+   char buffer[BUF];
+
+   struct sockaddr_in address;
+   std::string cli_input, serialized_input;
+   
+
+   //Validate programm execution
+   if (argc != 3) {
+        std::cout << "Command usage: " << argv[0] << " [ip] [port]" << std::endl;
+        exit(EXIT_FAILURE);
+   } 
+
+   //Create socket
+   if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)   {
+      perror("Socket error");
+      return EXIT_FAILURE;
+   }
+
+   //Init connection data
+   memset(&address, 0, sizeof(address)); // init storage with 0
+   address.sin_family = AF_INET;         // IPv4
+   address.sin_port = htons(atoi(argv[2]));
+   inet_aton(argv[1], &address.sin_addr);
+   
+   //Connect to server
+   if (connect(create_socket, (struct sockaddr *)&address,sizeof(address)) == -1)   {
+      perror("Connect error - no server available");
+      return EXIT_FAILURE;
+   }
+   printf("Connection with server (%s) established\n", inet_ntoa(address.sin_addr));
+
+   size = recv(create_socket, buffer, BUF - 1, 0);
+   if      (size == -1)       perror("recv error");
+   else if (size == 0)        printf("Server closed remote socket\n"); // ignore error
+   else   {
+      buffer[size] = '\0';
+      printf("%s", buffer); // ignore error
+   }
+
+   do   {
+         std::cout << ">> ";
+         std::getline(std::cin, cli_input);      
+      
+         if     (cli_input == "send") serialized_input = c_send();
+         else if(cli_input == "list") serialized_input = c_list(); 
+         else if(cli_input == "read") serialized_input = c_read();
+         else if(cli_input == "del")  serialized_input = c_del();
+         else if(cli_input == "quit") break;
+         else serialized_input = cli_input;
+
+         if ((send(create_socket, serialized_input.c_str(), serialized_input.length(), 0)) == -1) {
+            perror("send error");
+            break;
+         }
+
+         size = recv(create_socket, buffer, BUF - 1, 0);
+      
+         //Error handling
+         if (size == 0) {
+            std::cout << "Server closed remote socket" << std::endl;
+            break;
+         }
+         else if(size < 0) {       
+            std::cout << "Reciving Error" <<  std::endl;   
+            break;
+         }
+
+         //Print received data from server
+         buffer[size] = '\0';
+         std::cout << buffer << std::endl;
+      
+   } while (!isQuit);
+
+   //Error handling
+   if (create_socket != -1)   {
+      if (shutdown(create_socket, SHUT_RDWR) == -1)      {
+         perror("shutdown create_socket"); 
+      }
+      if (close(create_socket) == -1)      {
+         perror("close create_socket");
+      }
+      create_socket = -1;
+   }
+   return EXIT_SUCCESS;
+}

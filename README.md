@@ -1,2 +1,0 @@
-Mein Freund
-Neuer Test
