@@ -212,7 +212,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
    DIR *folder;
    int count = 0;
    struct dirent *entry = NULL;
-   std::string filePath, tempLine, token, output = "\n[Message-Number: " + recv_msg.message_number + "]\n";
+   std::string filePath, tempLine, token, output = "OK\n\n";
    std::string dirPath = "./spoolDir/" + spoolDir + "/" + recv_msg.username;
 
    if((folder = opendir(dirPath.c_str())) == NULL) {
@@ -241,17 +241,25 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
    filePath = dirPath + "/" + entry->d_name;
    if(type == 1) {
       std::ifstream MyReadFile(filePath);
-      for(int i = 0; i < 6; getline(MyReadFile, tempLine), i++);
-      std::cout << filePath << std::endl; 
-      std::cout << std::endl;
+      std::string hans;
+   
+      getline(MyReadFile, hans);
+      output += "Sender: " + hans + "\n";
+      getline(MyReadFile, hans);
+      getline(MyReadFile, hans);
+      output += "Receiver: " + hans + "\n";
+      getline(MyReadFile, hans);
+      getline(MyReadFile, hans);
+      output += "Subject: " + hans + "\nContent:" ;
+      getline(MyReadFile, hans);
+      getline(MyReadFile, hans);
+     
       while (getline(MyReadFile, tempLine)) {
          output += "\n" + tempLine;
-         std::cout << tempLine << std::endl;
       }
-      std::cout << std::endl;
       send(current_socket, output.c_str(), strlen(output.c_str()), 0);
-
-   } else if(type == 2) {
+   } 
+   else if(type == 2) {
       std::remove(filePath.c_str());
       send(current_socket, "OK", 3, 0);
    }
