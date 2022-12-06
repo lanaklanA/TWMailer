@@ -2,7 +2,7 @@
 
 #ifndef FUNCTION_H_
 #define FUNCTION_H_
-#define BUF 5000
+#define BUF 2048
 
 ///////////////////////////////////////////////////////////////////////////////
 // Catch userinput
@@ -20,4 +20,4 @@ std::string c_send();
 // Helper
 bool is_number(const std::string& s);
 
-#endif //FUNCTION_H
+#endif //FUNCTION_H_

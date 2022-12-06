@@ -2,7 +2,7 @@
 
 #ifndef FUNCTION_H_
 #define FUNCTION_H_
-#define BUF 5000
+#define BUF 2048
 
 ///////////////////////////////////////////////////////////////////////////////
 // Global variable
@@ -41,4 +41,4 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
 // Helper
 void create_msg_file(std::string filePath, struct msg recv_msg);
 
-#endif //FUNCTION_H
+#endif //FUNCTION_H_
