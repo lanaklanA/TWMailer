@@ -20,6 +20,28 @@
 // Own Headers Includes
 #include "header/function.h"
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// USAGE:         ./bin/client [ip] [port] 
+// USAGE EXAMPLE: ./bin/client localhost 6543
+//
+// The client connects to the server and communicates through a stream socket connection in a
+// proprietary plain-text format delimited by new-line or “dot + new-line
+//
+// After executing this programm, it will connect to a listening server.
+// When the connection is established, the users input gets parsed and send through 
+// a sockets to the listing server. After sending, the client waits of a response 
+// and represent this the user
+//
+// The server responds to the following commands:
+// 
+// send >> client sends a message to the server
+// list >> lists all messages of a specific user
+// read >> display a specific message of a specific user
+// del  >> removes a specific message
+// quit >> logout the client
+//
+
 int main(int argc, char **argv) {
    int create_socket, size, isQuit = 0;
    char buffer[BUF];
@@ -64,7 +86,8 @@ int main(int argc, char **argv) {
    do   {
          std::cout << ">> ";
          std::getline(std::cin, cli_input);      
-      
+
+         //Parsing users input
          if     (cli_input == "send") serialized_input = c_send();
          else if(cli_input == "list") serialized_input = c_list(); 
          else if(cli_input == "read") serialized_input = c_read();

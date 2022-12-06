@@ -33,9 +33,21 @@ int create_socket = -1;
 int new_socket = -1;
 int abortRequested = 0;
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// USAGE:         ./bin/server [port] [mail-spool-directoryname] 
+// USAGE EXAMPLE: ./bin/server 6543 database
+//
+// The client connects to the server and communicates through a stream socket connection in a
+// proprietary plain-text format delimited by new-line or “dot + new-line
+//
+// After executing this programm, it will open a connection and listen to a 
+// given port. When an handshake has been established, the server react of 
+// incoming requestes, handles them and answer with an response 
+//   
+
 int main(int argc, char **argv) {
-   int reuseValue = 1, port;
-   std::string spoolPath;
+   int reuseValue = 1;
    
    struct sockaddr_in address, cliaddress;
    socklen_t addrlen;
@@ -46,36 +58,35 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
    } 
    
+   //Register signalhandler
    if (signal(SIGINT, signalHandler)  == SIG_ERR) {
-      perror("signal can not be registered");
+      std::cerr << "signal can not be registered" << std::endl;
       return EXIT_FAILURE;
    }
 
    //Create socket
    if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-      perror("Socket error"); // errno set by socket()
+      std::cerr << "Socket error" << std::endl;// errno set by socket()
       return EXIT_FAILURE;
    }
 
    //Set socketoption for address
    if (setsockopt(create_socket, SOL_SOCKET, SO_REUSEADDR, &reuseValue, sizeof(reuseValue)) == -1) {
-      perror("set socket options - reuseAddr");
+      std::cerr << "set socket options - reuseAddr" << std::endl;
       return EXIT_FAILURE;
    }
 
    //Set socketoption for port
    if (setsockopt(create_socket, SOL_SOCKET, SO_REUSEPORT, &reuseValue, sizeof(reuseValue)) == -1) {
-      perror("set socket options - reusePort");
+      std::cerr << "set socket options - reusePort" << std::endl;
       return EXIT_FAILURE;
    }
 
    //Init connection data
-   port = atoi(argv[1]);
-   spoolPath = argv[2];
    memset(&address, 0, sizeof(address));
    address.sin_family = AF_INET;
    address.sin_addr.s_addr = INADDR_ANY;
-   address.sin_port = htons(port);
+   address.sin_port = htons(atoi(argv[1]));
 
    //Bind data to socket
    if (bind(create_socket, (struct sockaddr *)&address, sizeof(address)) == -1) {
@@ -100,13 +111,14 @@ int main(int argc, char **argv) {
       }
 
       printf("Client connected from %s:%d...\n", inet_ntoa(cliaddress.sin_addr), ntohs(cliaddress.sin_port));
-      clientCommunication(new_socket, spoolPath); // returnValue can be ignored
+      clientCommunication(new_socket, argv[2]); // returnValue can be ignored
       
       // std::thread bread (clientCommunication, new_socket); // returnValue can be ignored
       // bread.detach();
       new_socket = -1;
    }
 
+   //Error Handling
    if (create_socket != -1) {
       if (shutdown(create_socket, SHUT_RDWR) == -1) {
          perror("shutdown create_socket");

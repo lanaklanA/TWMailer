@@ -25,7 +25,10 @@ myclient: client/myclient.cpp
 
 myserver: server/myserver.cpp 
 	g++ -ggdb -std=c++11 -pthread -Wall -o ./bin/server server/myserver.cpp server/header/*.cpp
- 
+
+clean:
+	rm -f bin/client *.o
+	rm -f bin/server *.o
 
 
 
@@ -34,12 +37,6 @@ myserver: server/myserver.cpp
 
 
 
-
-
-
-# CC=g++
-# CFLAGS=-g -Wall -Wextra -O -std=c++2a -I /usr/local/include/gtest/ -pthread
-# GTEST=/usr/local/lib/libgtest.a
 
 # clean:
 # 	rm -f myclient *.o
