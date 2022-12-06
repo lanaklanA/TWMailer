@@ -250,7 +250,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
       output += "Receiver: " + hans + "\n";
       getline(MyReadFile, hans);
       getline(MyReadFile, hans);
-      output += "Subject: " + hans + "\nContent:" ;
+      output += "Subject: " + hans + "\n" ;
       getline(MyReadFile, hans);
       getline(MyReadFile, hans);
      
