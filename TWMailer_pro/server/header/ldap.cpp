@@ -1,3 +1,5 @@
+
+
 LDAP *ldap_init()
 {
    LDAP *ldapHandle;

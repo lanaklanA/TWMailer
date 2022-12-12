@@ -28,6 +28,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Own Headers Includes
 #include "header/function.h"
+#include "header/ldap.h"
+
 
 int create_socket = -1;
 int new_socket = -1;
@@ -48,7 +50,7 @@ int abortRequested = 0;
 
 int main(int argc, char **argv) {
    int reuseValue = 1;
-   
+      
    struct sockaddr_in address, cliaddress;
    socklen_t addrlen;
 
@@ -81,6 +83,11 @@ int main(int argc, char **argv) {
       std::cerr << "set socket options - reusePort" << std::endl;
       return EXIT_FAILURE;
    }
+
+   // Init Ldap
+   // ldaphandle = init_ldap
+   // ldap bind
+   // ldap serach
 
    //Init connection data
    memset(&address, 0, sizeof(address));
