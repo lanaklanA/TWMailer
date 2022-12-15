@@ -23,12 +23,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <ldap.h>
 // #include <thread>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Own Headers Includes
 #include "header/function.h"
-#include "header/ldap.h"
+#include "header/myldap.h"
 
 LDAP *ldapHandle;
 int create_socket = -1;

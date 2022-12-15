@@ -1,7 +1,8 @@
 #include <string>
+#include <ldap.h>
 
-#ifndef LDAP_H_
-#define LDAP_H_
+#ifndef MYLDAP_H_
+#define MYLDAP_H_
 #define BUF 2048
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,4 +17,4 @@ void login_and_bind(char *username, char *password, LDAP *ldapHandle);
 // Search for User
 int search_user(char *filter, LDAP *ldapHandle);
 
-#endif //LDAP_H_
+#endif //MYLDAP_H_
