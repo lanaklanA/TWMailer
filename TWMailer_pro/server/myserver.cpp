@@ -30,7 +30,7 @@
 #include "header/function.h"
 #include "header/ldap.h"
 
-
+LDAP *ldapHandle;
 int create_socket = -1;
 int new_socket = -1;
 int abortRequested = 0;
@@ -54,40 +54,44 @@ int main(int argc, char **argv) {
    struct sockaddr_in address, cliaddress;
    socklen_t addrlen;
 
-   //Validate programm execution
+   // Validate programm execution
    if (argc != 3) {
         std::cout << "Command usage: " << argv[0] << " [port] [mail-spool-directoryname]" << std::endl;
         exit(EXIT_FAILURE);
    } 
    
-   //Register signalhandler
+   // Register signalhandler
    if (signal(SIGINT, signalHandler)  == SIG_ERR) {
       std::cerr << "signal can not be registered" << std::endl;
       return EXIT_FAILURE;
    }
 
-   //Create socket
+   // Create socket
    if ((create_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
       std::cerr << "Socket error" << std::endl;// errno set by socket()
       return EXIT_FAILURE;
    }
 
-   //Set socketoption for address
+   // Set socketoption for address
    if (setsockopt(create_socket, SOL_SOCKET, SO_REUSEADDR, &reuseValue, sizeof(reuseValue)) == -1) {
       std::cerr << "set socket options - reuseAddr" << std::endl;
       return EXIT_FAILURE;
    }
 
-   //Set socketoption for port
+   // Set socketoption for port
    if (setsockopt(create_socket, SOL_SOCKET, SO_REUSEPORT, &reuseValue, sizeof(reuseValue)) == -1) {
       std::cerr << "set socket options - reusePort" << std::endl;
       return EXIT_FAILURE;
    }
 
-   // Init Ldap
-   // ldaphandle = init_ldap
-   // ldap bind
-   // ldap serach
+   // Initialize Ldap
+   ldapHandle = ldap_init();
+
+   // Bind Ldap
+   login_and_bind((char *)"if21b072", (char *)"Hans12345",  ldapHandle);
+
+   // Search Ldap User
+   printf("Zum angegeben Filter passen (%d) User\n", search_user((char *)"(uid=if20b07*)", ldapHandle));
 
    //Init connection data
    memset(&address, 0, sizeof(address));

@@ -1,5 +1,37 @@
+///////////////////////////////////////////////////////////////////////////////
+// C++/11 Headers Includes
+#include <iostream>
+#include <vector>
+// #include <thread>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <filesystem>
 
+///////////////////////////////////////////////////////////////////////////////
+// C Headers Includes
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <signal.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <ldap.h>
 
+///////////////////////////////////////////////////////////////////////////////
+// Own Headers Includes
+#include "ldap.h"
+#include "mypw.h"
+
+///////////////////////////////////////////////////////////////////////////////
+// Initialize
 LDAP *ldap_init()
 {
    LDAP *ldapHandle;
@@ -45,7 +77,8 @@ LDAP *ldap_init()
    return ldapHandle;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
+// Bind
 void login_and_bind(char *username, char *password, LDAP *ldapHandle)
 {
    char ldapBindUser[256], rawLdapUser[128], ldapBindPassword[256];
@@ -79,7 +112,8 @@ void login_and_bind(char *username, char *password, LDAP *ldapHandle)
    return;
 }
 
-
+///////////////////////////////////////////////////////////////////////////////
+// Search for User
 int search_user(char *filter, LDAP *ldapHandle)
 {
    const char *ldapSearchBaseDomainComponent = "dc=technikum-wien,dc=at";
