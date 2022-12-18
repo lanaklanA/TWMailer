@@ -105,6 +105,7 @@ int main(int argc, char **argv) {
 
    while (!abortRequested) {
       printf("Waiting for connections...\n");
+      fflush(stdout); 
 
       addrlen = sizeof(struct sockaddr_in);
       if ((new_socket = accept(create_socket, (struct sockaddr *)&cliaddress, &addrlen)) == -1) {
@@ -114,7 +115,6 @@ int main(int argc, char **argv) {
       }
 
       printf("Client connected from %s:%d...\n", inet_ntoa(cliaddress.sin_addr), ntohs(cliaddress.sin_port));
-
       clientCommunication(new_socket, argv[2]); // returnValue can be ignored
       
       // std::thread bread (clientCommunication, new_socket); // returnValue can be ignored

@@ -79,37 +79,40 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
    memset(buffer, 0 ,sizeof(buffer));
 
    do {
+      memset(buffer, 0 ,sizeof(buffer));
+
       size = recv(current_socket, buffer, BUF - 1, 0);
       if (size == -1) {
          if (abortRequested)  perror("recv error after aborted");
          else                 perror("recv error");
          break;
       }
-
+   
       if (size == 0) {
          printf("Client closed remote socket\n"); 
          break;
       }
+     
 
       if (buffer[size - 2] == '\r' && buffer[size - 1] == '\n') size -= 2;
       else if (buffer[size - 1] == '\n')                        --size;    
       buffer[size] = '\0';
-           
+        
+
       std::string cli_command(buffer);
       std::string command = cli_command.substr(cli_command.find_first_of('[')+1, cli_command.find_first_of(']')-1);
       std::cout << "Message/Command received: " << cli_command << std::endl; // ignore error
 
-      if(command == "login" && !is_auth(loggedUser))        loggedUser = s_login(fetch_usr_pwd(cli_command), current_socket);
 
       // if(!is_auth(loggedUser)) send(current_socket, "ERR", 4, 0);
+      std::cout << std::endl << command << std::endl;
 
-
-      if      (command == "send" && is_auth(loggedUser))    s_send(fetch_msg_content(cli_command, loggedUser), current_socket, spoolDir);
+      if      (command == "login" && !is_auth(loggedUser))  loggedUser = s_login(fetch_usr_pwd(cli_command), current_socket);
+      else if (command == "send" && is_auth(loggedUser))    s_send(fetch_msg_content(cli_command, loggedUser), current_socket, spoolDir);
       else if (command == "list" && is_auth(loggedUser))    s_list(cli_command.substr(7, cli_command.find_last_of(':')-7), current_socket, spoolDir);
       else if (command == "read" && is_auth(loggedUser))    s_read_or_del(1, fetch_username_msg_number(cli_command), current_socket, spoolDir);
       else if (command == "del"  && is_auth(loggedUser))    s_read_or_del(2, fetch_username_msg_number(cli_command), current_socket, spoolDir);
-      else                                                  send(current_socket, "OK", 3, 0);
-
+      else                                                  send(current_socket, "ERR: Command not found", 23, 0);
 
    } while (!abortRequested);
 
@@ -122,6 +125,7 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
       }
       current_socket = -1;
    }
+   fflush(stdout); 
    return NULL;
 }
 
@@ -194,17 +198,19 @@ struct credential s_login(struct credential crd, int current_socket) {
    // Bind Ldap
    int rc = login_and_bind((char*)crd.username.c_str(), (char*)crd.password.c_str(),  ldapHandle);
    
-   if (rc != LDAP_SUCCESS) {
       bl = fetch_infos(crd.username);
 
+      if(stoi(bl.attempts) >= 3 && ( (time(NULL) - stoi(bl.time)) < 60 ) ) {
+         std::cout << "Remaining time: " << time(NULL) - stoi(bl.time) << std::endl;
 
-      if(stoi(bl.attempts) > 3 && ( (time(NULL) - stoi(bl.time)) < 60 ) ) {
-         std::cout << time(NULL) << " " << stoi(bl.time) << "calc" << time(NULL) - stoi(bl.time) << std::endl;
          send(current_socket, "ERR: ur are banned", 19, 0);
                crd.username = "";
                crd.password = "";
                return crd;
+
       }
+   if (rc != LDAP_SUCCESS) {
+      
 
       add_attempt(crd.username); 
 
@@ -212,7 +218,7 @@ struct credential s_login(struct credential crd, int current_socket) {
       send(current_socket, errorMessage.c_str(), 24, 0);
 
       crd.username = "";
-       crd.password = "";
+      crd.password = "";
       return crd;
    }
    else
@@ -220,7 +226,7 @@ struct credential s_login(struct credential crd, int current_socket) {
       std::string filepath = "./Blacklists/" + crd.username;
       std::remove(filepath.c_str());
 
-      send(current_socket, "OK", 3, 0);
+      send(current_socket, "ISOK", 5, 0);
    }
 
 

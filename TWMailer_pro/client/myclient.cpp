@@ -74,6 +74,7 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
    }
    printf("Connection with server (%s) established\n", inet_ntoa(address.sin_addr));
+   fflush(stdout);
 
    size = recv(create_socket, buffer, BUF - 1, 0);
    if      (size == -1)       perror("recv error");
@@ -93,16 +94,18 @@ int main(int argc, char **argv) {
 
          //Parsing users input
          if      (cli_input == "login") serialized_input = c_login(&loggedUser);
-         // else if (cli_input == "quit")  break;
-         else    {printf("ERR: Pls log in to continue\n"); continue;}
-
+        
+         else    {std::cout << "ERR: Pls log in to continue" << std::endl; continue;}
+         fflush(stdout);      
 
          if ((send(create_socket, serialized_input.c_str(), serialized_input.length(), 0)) == -1) {
             perror("send error");
             break;
          }
+     
 
          size = recv(create_socket, buffer, BUF - 1, 0);
+        
       
          //Error handling
          if (size == 0) {
@@ -117,15 +120,17 @@ int main(int argc, char **argv) {
          //Print received data from server
          buffer[size] = '\0';
          std::cout << buffer << std::endl;
-
-         if(strcmp(buffer, "OK\0") == 0) break;
+        
+         if(strcmp(buffer, "ISOK\0") == 0) break;  
    }
 
    std::cout << "\nLogged in as: " + loggedUser.username << std::endl;
 
    do   {
          std::cout << ">> ";
+         fflush(stdout);
          std::getline(std::cin, cli_input);      
+         fflush(stdout);
 
          //Parsing users input
          if     (cli_input == "send")  serialized_input = c_send(loggedUser);
@@ -134,13 +139,16 @@ int main(int argc, char **argv) {
          else if(cli_input == "del")   serialized_input = c_del (loggedUser);
          else if(cli_input == "quit")  break;
          else serialized_input = cli_input + " ";
+         fflush(stdout);
          
          if ((send(create_socket, serialized_input.c_str(), serialized_input.length(), 0)) == -1) {
             perror("send error");
             break;
          }
+         fflush(stdout);
 
          size = recv(create_socket, buffer, BUF - 1, 0);
+         fflush(stdout);
       
          //Error handling
          if (size == 0) {
@@ -151,10 +159,12 @@ int main(int argc, char **argv) {
             std::cout << "Reciving Error" <<  std::endl;   
             break;
          }
+         fflush(stdout);
 
          //Print received data from server
          buffer[size] = '\0';
          std::cout << buffer << std::endl;
+         fflush(stdout);
       
    } while (!isQuit);
 
