@@ -87,6 +87,7 @@ int main(int argc, char **argv) {
    struct credential loggedUser;
    //login usr
    while (1) {
+ 
          std::cout << ">> ";
          std::getline(std::cin, cli_input);   
 
@@ -132,8 +133,8 @@ int main(int argc, char **argv) {
          else if(cli_input == "read")  serialized_input = c_read(loggedUser);
          else if(cli_input == "del")   serialized_input = c_del (loggedUser);
          else if(cli_input == "quit")  break;
-         else serialized_input = cli_input;
-
+         else serialized_input = cli_input + " ";
+         
          if ((send(create_socket, serialized_input.c_str(), serialized_input.length(), 0)) == -1) {
             perror("send error");
             break;

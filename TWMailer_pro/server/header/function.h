@@ -22,6 +22,10 @@ struct credential {
    std::string username, password;
 };
 
+struct blacklist {
+   std::string attempts, time;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // Signal
 void signalHandler(int sig);
@@ -37,6 +41,7 @@ struct msg fetch_msg_content(std::string buffer, struct credential loggedUser);
 struct credential fetch_usr_pwd(std::string buffer);
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // Server commands
 struct credential s_login(struct credential crd, int current_socket);
@@ -48,5 +53,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
 // Helper
 void create_msg_file(std::string filePath, struct msg recv_msg);
 bool is_auth(struct credential user);
+struct blacklist fetch_infos(std::string username);
+void add_attempt(std::string username);
 
 #endif //FUNCTION_H_

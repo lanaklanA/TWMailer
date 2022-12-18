@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <time.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Own Headers Includes
@@ -107,9 +108,8 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
       else if (command == "list" && is_auth(loggedUser))    s_list(cli_command.substr(7, cli_command.find_last_of(':')-7), current_socket, spoolDir);
       else if (command == "read" && is_auth(loggedUser))    s_read_or_del(1, fetch_username_msg_number(cli_command), current_socket, spoolDir);
       else if (command == "del"  && is_auth(loggedUser))    s_read_or_del(2, fetch_username_msg_number(cli_command), current_socket, spoolDir);
-      else if (is_auth(loggedUser))                         send(current_socket, "OK", 3, 0);
+      else                                                  send(current_socket, "OK", 3, 0);
 
-      else                                                  send(current_socket, "ERR: meine Ausgabe", 19, 0);
 
    } while (!abortRequested);
 
@@ -184,26 +184,46 @@ struct msg fetch_msg_content(std::string buffer, struct credential loggedUser) {
 // Server commands
 struct credential s_login(struct credential crd, int current_socket) {
    LDAP *ldapHandle;
+   // int counter = 0;
+   struct blacklist bl;
 
    // Initialize Ldap
    ldapHandle = ldap_init();
+
 
    // Bind Ldap
    int rc = login_and_bind((char*)crd.username.c_str(), (char*)crd.password.c_str(),  ldapHandle);
    
    if (rc != LDAP_SUCCESS) {
-      std::string errorMessage = "ERR: " + std::string(ldap_err2string(rc));
-      send(current_socket, errorMessage.c_str(), errorMessage.length()+1, 0);
-      // ldap_unbind_ext_s(ldapHandle, NULL, NULL);
+      bl = fetch_infos(crd.username);
+
+
+      if(stoi(bl.attempts) > 3 && ( (time(NULL) - stoi(bl.time)) < 60 ) ) {
+         std::cout << time(NULL) << " " << stoi(bl.time) << "calc" << time(NULL) - stoi(bl.time) << std::endl;
+         send(current_socket, "ERR: ur are banned", 19, 0);
+               crd.username = "";
+               crd.password = "";
+               return crd;
+      }
+
+      add_attempt(crd.username); 
+
+      std::string errorMessage = "ERR: Invalid credential"; //+ std::string(ldap_err2string(rc));
+      send(current_socket, errorMessage.c_str(), 24, 0);
 
       crd.username = "";
-      crd.password = "";
+       crd.password = "";
       return crd;
    }
-   // Search Ldap User
-   // printf("Zum angegeben Filter passen (%d) User\n", search_user((char *)"(uid=if20b07*)", ldapHandle));
+   else
+   {
+      std::string filepath = "./Blacklists/" + crd.username;
+      std::remove(filepath.c_str());
 
-   send(current_socket, "OK", 3, 0);
+      send(current_socket, "OK", 3, 0);
+   }
+
+
    return crd;
 }
 
@@ -253,7 +273,6 @@ void s_list(std::string username, int current_socket, std::string spoolDir) {
    }
    
    send(current_socket, output.c_str(), strlen(output.c_str()), 0);
-   
 }
 
 void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::string spoolDir) {
@@ -299,7 +318,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
       getline(MyReadFile, hans);
       getline(MyReadFile, hans);
       output += "Subject: " + hans + "\n" ;
-      getline(MyReadFile, hans);
+      
       getline(MyReadFile, hans);
      
       while (getline(MyReadFile, tempLine)) {
@@ -328,6 +347,57 @@ bool is_auth(struct credential user) {
    return (user.username != "" || user.password != "");
 }
 
+struct blacklist fetch_infos(std::string username) {
+   DIR *folder;
+   struct blacklist bl;
+
+   std::string filePath, tempLine;
+   std::string dirPath = "./Blacklists/";
+
+   if((folder = opendir(dirPath.c_str())) == NULL) {
+      std::cerr << "Unable to read directory" << std::endl;
+      bl.attempts = "0";
+      bl.time = "0";
+      return bl;
+   }
+
+   filePath = dirPath + "/" + username;
+   std::ifstream MyReadFile(filePath);
+
+   if(MyReadFile.good()) {
+      std::string hans;
+
+      getline(MyReadFile, hans);
+      bl.attempts = hans;
+
+      getline(MyReadFile, hans);
+      bl.time = hans;
+      MyReadFile.close();
+   } else {
+      std::ofstream MyFile(filePath.c_str());
+      MyFile   << 0           << std::endl  
+               << time(NULL)  << std::endl;
+
+      bl.attempts = "0";
+      bl.time = "0";
+     
+      MyFile.close();
+   }
+   return bl;
+}
+
+void add_attempt(std::string username) {
+   struct blacklist bl;
+   std::string filePath = "./Blacklists/" + username;
+   bl = fetch_infos(username);
+
+
+   std::ofstream MyFile(filePath.c_str());
+   MyFile << stoi(bl.attempts) +1   << std::endl  
+          << time(NULL)            << std::endl;
+
+   MyFile.close();
+}
 
 
 
