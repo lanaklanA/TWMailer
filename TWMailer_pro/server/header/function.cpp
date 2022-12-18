@@ -102,10 +102,7 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
       std::string cli_command(buffer);
       std::string command = cli_command.substr(cli_command.find_first_of('[')+1, cli_command.find_first_of(']')-1);
       std::cout << "Message/Command received: " << cli_command << std::endl; // ignore error
-
-
-      // if(!is_auth(loggedUser)) send(current_socket, "ERR", 4, 0);
-      std::cout << std::endl << command << std::endl;
+      
 
       if      (command == "login" && !is_auth(loggedUser))  loggedUser = s_login(fetch_usr_pwd(cli_command), current_socket);
       else if (command == "send" && is_auth(loggedUser))    s_send(fetch_msg_content(cli_command, loggedUser), current_socket, spoolDir);
@@ -113,6 +110,8 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
       else if (command == "read" && is_auth(loggedUser))    s_read_or_del(1, fetch_username_msg_number(cli_command), current_socket, spoolDir);
       else if (command == "del"  && is_auth(loggedUser))    s_read_or_del(2, fetch_username_msg_number(cli_command), current_socket, spoolDir);
       else                                                  send(current_socket, "ERR: Command not found", 23, 0);
+
+
 
    } while (!abortRequested);
 
@@ -204,10 +203,9 @@ struct credential s_login(struct credential crd, int current_socket) {
          std::cout << "Remaining time: " << time(NULL) - stoi(bl.time) << std::endl;
 
          send(current_socket, "ERR: ur are banned", 19, 0);
-               crd.username = "";
-               crd.password = "";
-               return crd;
-
+         crd.username = "";
+         crd.password = "";
+         return crd;
       }
    if (rc != LDAP_SUCCESS) {
       

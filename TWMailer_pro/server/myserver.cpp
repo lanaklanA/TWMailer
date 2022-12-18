@@ -105,8 +105,7 @@ int main(int argc, char **argv) {
 
    while (!abortRequested) {
       printf("Waiting for connections...\n");
-      fflush(stdout); 
-
+  
       addrlen = sizeof(struct sockaddr_in);
       if ((new_socket = accept(create_socket, (struct sockaddr *)&cliaddress, &addrlen)) == -1) {
          if (abortRequested)  perror("accept error after aborted");
