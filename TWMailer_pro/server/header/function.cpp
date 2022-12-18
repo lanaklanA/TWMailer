@@ -283,7 +283,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
    DIR *folder;
    int count = 0;
    struct dirent *entry = NULL;
-   std::string filePath, tempLine, token, output = "OK\n\n";
+   std::string filePath, tempLine, token, output = "OK";
    std::string dirPath = "./spoolDir/" + spoolDir + "/" + recv_msg.username;
 
    if((folder = opendir(dirPath.c_str())) == NULL) {
