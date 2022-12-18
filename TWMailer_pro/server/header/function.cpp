@@ -197,19 +197,18 @@ struct credential s_login(struct credential crd, int current_socket) {
    // Bind Ldap
    int rc = login_and_bind((char*)crd.username.c_str(), (char*)crd.password.c_str(),  ldapHandle);
    
-      bl = fetch_infos(crd.username);
+   bl = fetch_infos(crd.username);
 
-      if(stoi(bl.attempts) >= 3 && ( (time(NULL) - stoi(bl.time)) < 60 ) ) {
-         std::cout << "Remaining time: " << time(NULL) - stoi(bl.time) << std::endl;
+   if(stoi(bl.attempts) >= 3 && ( (time(NULL) - stoi(bl.time)) < 60 ) ) {
+      std::cout << "Remaining time: " << time(NULL) - stoi(bl.time) << std::endl;
 
-         send(current_socket, "ERR: ur are banned", 19, 0);
-         crd.username = "";
-         crd.password = "";
-         return crd;
-      }
+      send(current_socket, "ERR: ur are banned", 19, 0);
+      crd.username = "";
+      crd.password = "";
+      return crd;
+   }
+
    if (rc != LDAP_SUCCESS) {
-      
-
       add_attempt(crd.username); 
 
       std::string errorMessage = "ERR: Invalid credential"; //+ std::string(ldap_err2string(rc));
@@ -218,15 +217,12 @@ struct credential s_login(struct credential crd, int current_socket) {
       crd.username = "";
       crd.password = "";
       return crd;
-   }
-   else
-   {
+   } else {
       std::string filepath = "./Blacklists/" + crd.username;
       std::remove(filepath.c_str());
 
       send(current_socket, "ISOK", 5, 0);
    }
-
 
    return crd;
 }
@@ -289,7 +285,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
    if((folder = opendir(dirPath.c_str())) == NULL) {
       std::cerr << "Unable to read directory" << std::endl;
       std::string errorMessage = "ERR: Username does not exits";
-      send(current_socket, errorMessage.c_str(), errorMessage.length(), 0);
+      send(current_socket, errorMessage.c_str(), errorMessage.length() +1, 0);
       return;
    }
    while((entry = readdir(folder))) count++;
@@ -297,13 +293,13 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
    if((folder = opendir(dirPath.c_str())) == NULL) {
       std::cerr << "Unable to read directory" << std::endl;
       std::string errorMessage = "ERR: Username does not exits";
-      send(current_socket, errorMessage.c_str(), errorMessage.length(), 0);
+      send(current_socket, errorMessage.c_str(), errorMessage.length() +1, 0);
       return;
    }
    if(count -2 < atoi(recv_msg.message_number.c_str())) { 
       std::cerr << "Unable to read file" << std::endl;
       std::string errorMessage = "ERR: Message does not exist";
-      send(current_socket, errorMessage.c_str(), errorMessage.length(), 0);
+      send(current_socket, errorMessage.c_str(), errorMessage.length() +1, 0);
       return;
    }
 
@@ -328,7 +324,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
       while (getline(MyReadFile, tempLine)) {
          output += "\n" + tempLine;
       }
-      send(current_socket, output.c_str(), strlen(output.c_str()), 0);
+      send(current_socket, output.c_str(), output.length() +1, 0);
    } 
    else if(type == 2) {
       std::remove(filePath.c_str());
