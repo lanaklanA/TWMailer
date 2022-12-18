@@ -64,34 +64,47 @@ std::string get_usr_input_typed(std::string content, std::string type) {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Server commands
-std::string c_send() {
-   std::string sender = get_usr_input("Enter the Sender:", 8);
+// Client commands
+std::string c_login(struct credential *loggedUser) { 
+   std::string name = get_usr_input("Enter Username:", 8);
+   std::string pwd = get_usr_input("Enter Password:", 256);
+   loggedUser->username = name; 
+   loggedUser->password = pwd;
+
+   return "[login]\n" + name + "\n" + pwd + "\n";
+}
+
+std::string c_send(struct credential loggedUser) {
+   // std::string sender = get_usr_input("Enter the Sender:", 8);
+   std::string sender = loggedUser.username;
    std::string receiver = get_usr_input("Enter the Receiver:", 8);
    std::string subject = get_usr_input("Enter the Subject:", 80);
    std::string message = get_usr_input_typed("Enter the Message Content:", "message");
 
-   return "[send]\n" + sender + "\n" + receiver + "\n" + subject + message;
+   return "[send]\n" + sender + "\n" + receiver + "\n" + subject + message + "\n";
 }
 
-std::string c_list() {
-   std::string username = get_usr_input("Enter the Username:", 8);
+std::string c_list(struct credential loggedUser) {
+   // std::string username = get_usr_input("Enter the Username:", 8);
+   std::string username = loggedUser.username;
 
    return "[list]:" + username + ":";
 }
 
-std::string c_read() {
-   std::string username = get_usr_input("Enter the Username:", 8);
+std::string c_read(struct credential loggedUser) {
+   // std::string username = get_usr_input("Enter the Username:", 8);
+   std::string username = loggedUser.username;
    std::string message_number = get_usr_input_typed("Enter the Message Nummer:", "number");
 
-   return "[read]\n" + username + "\n" + message_number;
+   return "[read]\n" + username + "\n" + message_number + "\n";
 }
 
-std::string c_del() {
-   std::string username = get_usr_input("Enter the Username:", 8);
+std::string c_del(struct credential loggedUser) {
+   // std::string username = get_usr_input("Enter the Username:", 8);
+   std::string username = loggedUser.username;
    std::string message_number = get_usr_input_typed("Enter the Message Nummer:", "number");
 
-   return "[del]\n" + username + "\n" + message_number;
+   return "[del]\n" + username + "\n" + message_number + "\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,3 +114,8 @@ bool is_number(const std::string& s) {
     while (it != s.end() && std::isdigit(*it)) ++it;
     return !s.empty() && it == s.end();
 }
+
+bool is_auth(struct credential user) {
+   return (user.username != "" || user.password != "");
+}
+

@@ -18,6 +18,10 @@ struct msg_u_mn {
    std::string username, message_number;
 };
 
+struct credential {
+   std::string username, password;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // Signal
 void signalHandler(int sig);
@@ -29,10 +33,13 @@ void *clientCommunication(int current_socket, std::string spoolDir);
 ///////////////////////////////////////////////////////////////////////////////
 // Input parsing
 struct msg_u_mn fetch_username_msg_number(std::string buffer);
-struct msg fetch_msg_content(std::string buffer);
+struct msg fetch_msg_content(std::string buffer, struct credential loggedUser);
+struct credential fetch_usr_pwd(std::string buffer);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Server commands
+struct credential s_login(struct credential crd, int current_socket);
 void s_send(struct msg recv_msg, int current_socket, std::string spoolDir);
 void s_list(std::string username, int current_socket, std::string spoolDir);
 void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::string spoolDir);
@@ -40,5 +47,6 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
 ///////////////////////////////////////////////////////////////////////////////
 // Helper
 void create_msg_file(std::string filePath, struct msg recv_msg);
+bool is_auth(struct credential user);
 
 #endif //FUNCTION_H_

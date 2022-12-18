@@ -21,10 +21,10 @@
 all: myclient myserver
 
 myclient: client/myclient.cpp
-	g++ -ggdb -std=c++11 -pthread -Wall -o ./bin/client client/myclient.cpp client/header/*.cpp
+	g++ -ggdb -std=c++11 -pthread -Wall -o ./bin/client client/myclient.cpp client/header/*.cpp -lldap -llber
 
 myserver: server/myserver.cpp 
-	g++ -ggdb -std=c++11 -pthread -Wall -o ./bin/server server/myserver.cpp server/header/*.cpp
+	g++ -ggdb -std=c++11 -pthread -Wall -o ./bin/server server/myserver.cpp server/header/*.cpp -lldap -llber
 
 clean:
 	rm -f bin/client *.o

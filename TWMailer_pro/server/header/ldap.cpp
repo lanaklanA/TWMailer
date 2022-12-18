@@ -27,8 +27,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // Own Headers Includes
-#include "myldap.h"
-#include "mypw.h"
+#include "ldap.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Initialize
@@ -79,7 +78,7 @@ LDAP *ldap_init()
 
 ///////////////////////////////////////////////////////////////////////////////
 // Bind
-void login_and_bind(char *username, char *password, LDAP *ldapHandle)
+int login_and_bind(char *username, char *password, LDAP *ldapHandle)
 {
    char ldapBindUser[256], rawLdapUser[128], ldapBindPassword[256];
 
@@ -106,10 +105,10 @@ void login_and_bind(char *username, char *password, LDAP *ldapHandle)
    if (rc != LDAP_SUCCESS) {
       fprintf(stderr, "LDAP bind error: %s\n", ldap_err2string(rc));
       ldap_unbind_ext_s(ldapHandle, NULL, NULL);
-      // return EXIT_FAILURE;
+      return rc;
    }
 
-   return;
+   return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

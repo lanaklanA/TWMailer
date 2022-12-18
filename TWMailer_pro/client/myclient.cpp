@@ -83,16 +83,55 @@ int main(int argc, char **argv) {
       printf("%s", buffer); // ignore error
    }
 
+
+   struct credential loggedUser;
+   //login usr
+   while (1) {
+         std::cout << ">> ";
+         std::getline(std::cin, cli_input);   
+
+         //Parsing users input
+         if      (cli_input == "login") serialized_input = c_login(&loggedUser);
+         // else if (cli_input == "quit")  break;
+         else    {printf("ERR: Pls log in to continue\n"); continue;}
+
+
+         if ((send(create_socket, serialized_input.c_str(), serialized_input.length(), 0)) == -1) {
+            perror("send error");
+            break;
+         }
+
+         size = recv(create_socket, buffer, BUF - 1, 0);
+      
+         //Error handling
+         if (size == 0) {
+            std::cout << "Server closed remote socket" << std::endl;
+            break;
+         }
+         else if(size < 0) {       
+            std::cout << "Reciving Error" <<  std::endl;   
+            break;
+         }
+
+         //Print received data from server
+         buffer[size] = '\0';
+         std::cout << buffer << std::endl;
+
+         if(strcmp(buffer, "OK\0") == 0) break;
+   }
+
+   std::cout << "\nLogged in as: " + loggedUser.username << std::endl;
+
    do   {
          std::cout << ">> ";
          std::getline(std::cin, cli_input);      
 
          //Parsing users input
-         if     (cli_input == "send") serialized_input = c_send();
-         else if(cli_input == "list") serialized_input = c_list(); 
-         else if(cli_input == "read") serialized_input = c_read();
-         else if(cli_input == "del")  serialized_input = c_del();
-         else if(cli_input == "quit") break;
+         if     (cli_input == "send")  serialized_input = c_send(loggedUser);
+         else if(cli_input == "list")  serialized_input = c_list(loggedUser); 
+         else if(cli_input == "read")  serialized_input = c_read(loggedUser);
+         else if(cli_input == "del")   serialized_input = c_del (loggedUser);
+         else if(cli_input == "quit")  break;
          else serialized_input = cli_input;
 
          if ((send(create_socket, serialized_input.c_str(), serialized_input.length(), 0)) == -1) {

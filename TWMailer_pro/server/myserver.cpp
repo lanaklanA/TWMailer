@@ -29,7 +29,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Own Headers Includes
 #include "header/function.h"
-#include "header/myldap.h"
+#include "header/ldap.h"
 
 LDAP *ldapHandle;
 int create_socket = -1;
@@ -85,15 +85,6 @@ int main(int argc, char **argv) {
       return EXIT_FAILURE;
    }
 
-   // Initialize Ldap
-   ldapHandle = ldap_init();
-
-   // Bind Ldap
-   login_and_bind((char *)"if21b072", (char *)"Hans12345",  ldapHandle);
-
-   // Search Ldap User
-   printf("Zum angegeben Filter passen (%d) User\n", search_user((char *)"(uid=if20b07*)", ldapHandle));
-
    //Init connection data
    memset(&address, 0, sizeof(address));
    address.sin_family = AF_INET;
@@ -123,6 +114,7 @@ int main(int argc, char **argv) {
       }
 
       printf("Client connected from %s:%d...\n", inet_ntoa(cliaddress.sin_addr), ntohs(cliaddress.sin_port));
+
       clientCommunication(new_socket, argv[2]); // returnValue can be ignored
       
       // std::thread bread (clientCommunication, new_socket); // returnValue can be ignored

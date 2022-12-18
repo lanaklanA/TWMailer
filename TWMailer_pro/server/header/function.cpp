@@ -27,6 +27,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Own Headers Includes
 #include "function.h"
+#include "ldap.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Signal
@@ -67,7 +68,7 @@ void signalHandler(int sig) {
 void *clientCommunication(int current_socket, std::string spoolDir) {
    int size;
    char buffer[BUF];
-   struct msg mail;
+   struct credential loggedUser;
  
    strcpy(buffer, "Welcome to myserver!\r\nPlease enter your commands...\r\n");
    if (send(current_socket, buffer, strlen(buffer), 0) == -1)   {
@@ -95,14 +96,20 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
            
       std::string cli_command(buffer);
       std::string command = cli_command.substr(cli_command.find_first_of('[')+1, cli_command.find_first_of(']')-1);
+      std::cout << "Message/Command received: " << cli_command << std::endl; // ignore error
 
-      std::cout << "Message/Command received: " << command << std::endl; // ignore error
+      if(command == "login" && !is_auth(loggedUser))        loggedUser = s_login(fetch_usr_pwd(cli_command), current_socket);
 
-      if     (command == "send") s_send(fetch_msg_content(cli_command), current_socket, spoolDir);
-      else if(command == "list") s_list(cli_command.substr(7, cli_command.find_last_of(':')-7), current_socket, spoolDir);
-      else if(command == "read") s_read_or_del(1, fetch_username_msg_number(cli_command), current_socket, spoolDir);
-      else if(command == "del")  s_read_or_del(2, fetch_username_msg_number(cli_command), current_socket, spoolDir);
-      else                       send(current_socket, "OK", 3, 0);
+      // if(!is_auth(loggedUser)) send(current_socket, "ERR", 4, 0);
+
+
+      if      (command == "send" && is_auth(loggedUser))    s_send(fetch_msg_content(cli_command, loggedUser), current_socket, spoolDir);
+      else if (command == "list" && is_auth(loggedUser))    s_list(cli_command.substr(7, cli_command.find_last_of(':')-7), current_socket, spoolDir);
+      else if (command == "read" && is_auth(loggedUser))    s_read_or_del(1, fetch_username_msg_number(cli_command), current_socket, spoolDir);
+      else if (command == "del"  && is_auth(loggedUser))    s_read_or_del(2, fetch_username_msg_number(cli_command), current_socket, spoolDir);
+      else if (is_auth(loggedUser))                         send(current_socket, "OK", 3, 0);
+
+      else                                                  send(current_socket, "ERR: meine Ausgabe", 19, 0);
 
    } while (!abortRequested);
 
@@ -135,14 +142,29 @@ struct msg_u_mn fetch_username_msg_number(std::string buffer) {
    return client_msg;
 }
 
-struct msg fetch_msg_content(std::string buffer) {
+struct credential fetch_usr_pwd(std::string buffer) {
+   struct credential client_msg;
+   std::istringstream iss(buffer);
+   std::string token;
+
+   std::getline(iss, token, '\n');
+   std::getline(iss, token, '\n');
+   client_msg.username = token;
+
+   std::getline(iss, token, '\n');
+   client_msg.password = token;
+
+   return client_msg;
+}
+
+struct msg fetch_msg_content(std::string buffer, struct credential loggedUser) {
    struct msg client_msg;
    std::istringstream iss(buffer);
    std::string token, final;
 
    std::getline(iss, token, '\n');
    std::getline(iss, token, '\n');
-   client_msg.sender = token;
+   client_msg.sender = loggedUser.username;
 
    std::getline(iss, token, '\n');
    client_msg.receiver = token;
@@ -160,6 +182,32 @@ struct msg fetch_msg_content(std::string buffer) {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Server commands
+struct credential s_login(struct credential crd, int current_socket) {
+   LDAP *ldapHandle;
+
+   // Initialize Ldap
+   ldapHandle = ldap_init();
+
+   // Bind Ldap
+   int rc = login_and_bind((char*)crd.username.c_str(), (char*)crd.password.c_str(),  ldapHandle);
+   
+   if (rc != LDAP_SUCCESS) {
+      std::string errorMessage = "ERR: " + std::string(ldap_err2string(rc));
+      send(current_socket, errorMessage.c_str(), errorMessage.length()+1, 0);
+      // ldap_unbind_ext_s(ldapHandle, NULL, NULL);
+
+      crd.username = "";
+      crd.password = "";
+      return crd;
+   }
+   // Search Ldap User
+   // printf("Zum angegeben Filter passen (%d) User\n", search_user((char *)"(uid=if20b07*)", ldapHandle));
+
+   send(current_socket, "OK", 3, 0);
+   return crd;
+}
+
+
 void s_send(struct msg recv_msg, int current_socket, std::string spoolDir) {
    std::string basePath = "./spoolDir/" + spoolDir;
    std::string dirPath = basePath + "/" + recv_msg.receiver;
@@ -274,6 +322,10 @@ void create_msg_file(std::string filePath, struct msg recv_msg) {
           << recv_msg.subject  << std::endl << std::endl 
           << recv_msg.content;
    MyFile.close();
+}
+
+bool is_auth(struct credential user) {
+   return (user.username != "" || user.password != "");
 }
 
 
