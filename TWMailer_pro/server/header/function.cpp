@@ -71,7 +71,7 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
    char buffer[BUF];
    struct credential loggedUser;
  
-   strcpy(buffer, "Welcome to myserver!\r\nPlease enter your commands...\r\n");
+   strcpy(buffer, "Welcome to TWMailer Pro! By Florian Czachor and Brian Schneider\r\nPlease proceed with the command: LOGIN\r\n\n");
    if (send(current_socket, buffer, strlen(buffer), 0) == -1)   {
       perror("send failed");
       return NULL;
@@ -178,7 +178,7 @@ struct msg fetch_msg_content(std::string buffer, struct credential loggedUser) {
    while (std::getline(iss, token, '\n'))
       final += token + "\n";
    
-   client_msg.content = final + "\n";
+   client_msg.content = final;
 
    return client_msg;
 }
@@ -263,9 +263,9 @@ void s_list(std::string username, int current_socket, std::string spoolDir) {
 
    while((entry = readdir(folder))) {
       count++;
-      messages.append("[" + std::to_string(count) + "] " + entry->d_name + "\n");
+      messages.append("\n[" + std::to_string(count) + "] " + entry->d_name);
    }
-   output = "[Count of Messages of the User: " + std::to_string(count) + "]\n" + messages;
+   output = "[Count of Messages of the User: " + std::to_string(count) + "]" + messages;
    if(count == 0) {
       std::string errorMessage = "ERR: No messages found from user";
       send(current_socket, errorMessage.c_str(), errorMessage.length(), 0);
@@ -311,15 +311,15 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
       std::string hans;
    
       getline(MyReadFile, hans);
-      output += "\nSender: " + hans + "\n";
+      output += "\n\nSender: " + hans + "\n";
       getline(MyReadFile, hans);
       getline(MyReadFile, hans);
       output += "Receiver: " + hans + "\n";
       getline(MyReadFile, hans);
       getline(MyReadFile, hans);
       output += "Subject: " + hans + "\n" ;
-      
       getline(MyReadFile, hans);
+      output += "Message: ";
      
       while (getline(MyReadFile, tempLine)) {
          output += "\n" + tempLine;

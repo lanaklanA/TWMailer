@@ -124,10 +124,16 @@ int main(int argc, char **argv) {
          if(strcmp(buffer, "ISOK\0") == 0) break;  
    }
 
-   std::cout << "\nLogged in as: " + loggedUser.username << std::endl;
+   std::cout << "Logged in as: " + loggedUser.username + "\n"<< std::endl;
+   std::cout << "Proceed with the following commands:" << std::endl;
+   std::cout << "- SEND: client sends a message to the server." << std::endl;
+   std::cout << "- LIST: lists all messages of a specific user." << std::endl;
+   std::cout << "- READ: display a specific message of a specific user." << std::endl;
+   std::cout << "- DEL: removes a specific message." << std::endl;
+   std::cout << "- QUIT: logout the client." << std::endl;
 
    do   {
-         std::cout << ">> ";
+         std::cout << "\nEnter Command:\n>> ";
          fflush(stdout);
          std::getline(std::cin, cli_input);      
          fflush(stdout);
