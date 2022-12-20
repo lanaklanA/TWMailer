@@ -296,7 +296,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
       send(current_socket, errorMessage.c_str(), errorMessage.length() +1, 0);
       return;
    }
-   if(count -2 < atoi(recv_msg.message_number.c_str())) { 
+   if(count -2 < atoi(recv_msg.message_number.c_str()) || atoi(recv_msg.message_number.c_str()) == 0) {
       std::cerr << "Unable to read file" << std::endl;
       std::string errorMessage = "ERR: Message does not exist";
       send(current_socket, errorMessage.c_str(), errorMessage.length() +1, 0);
@@ -311,7 +311,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
       std::string hans;
    
       getline(MyReadFile, hans);
-      output += "Sender: " + hans + "\n";
+      output += "\nSender: " + hans + "\n";
       getline(MyReadFile, hans);
       getline(MyReadFile, hans);
       output += "Receiver: " + hans + "\n";
