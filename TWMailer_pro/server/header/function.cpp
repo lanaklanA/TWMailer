@@ -104,12 +104,12 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
       std::cout << "Message/Command received: " << cli_command << std::endl; // ignore error
       
 
-      if      (command == "login" && !is_auth(loggedUser))  loggedUser = s_login(fetch_usr_pwd(cli_command), current_socket);
-      else if (command == "send" && is_auth(loggedUser))    s_send(fetch_msg_content(cli_command, loggedUser), current_socket, spoolDir);
-      else if (command == "list" && is_auth(loggedUser))    s_list(cli_command.substr(7, cli_command.find_last_of(':')-7), current_socket, spoolDir);
-      else if (command == "read" && is_auth(loggedUser))    s_read_or_del(1, fetch_username_msg_number(cli_command), current_socket, spoolDir);
-      else if (command == "del"  && is_auth(loggedUser))    s_read_or_del(2, fetch_username_msg_number(cli_command), current_socket, spoolDir);
-      else                                                  send(current_socket, "ERR: Command not found", 23, 0);
+      if      (strcasecmp(command.c_str(), "login") == 0 && !is_auth(loggedUser))  loggedUser = s_login(fetch_usr_pwd(cli_command), current_socket);
+      else if (strcasecmp(command.c_str(), "send") == 0 && is_auth(loggedUser))    s_send(fetch_msg_content(cli_command, loggedUser), current_socket, spoolDir);
+      else if (strcasecmp(command.c_str(), "list") == 0 && is_auth(loggedUser))    s_list(cli_command.substr(7, cli_command.find_last_of(':')-7), current_socket, spoolDir);
+      else if (strcasecmp(command.c_str(), "read") == 0 && is_auth(loggedUser))    s_read_or_del(1, fetch_username_msg_number(cli_command), current_socket, spoolDir);
+      else if (strcasecmp(command.c_str(), "del") == 0  && is_auth(loggedUser))    s_read_or_del(2, fetch_username_msg_number(cli_command), current_socket, spoolDir);
+      else                                                                    send(current_socket, "ERR: Command not found", 23, 0);
 
 
 

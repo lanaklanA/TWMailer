@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
          std::getline(std::cin, cli_input);   
 
          //Parsing users input
-         if      (cli_input == "login") serialized_input = c_login(&loggedUser);
+         if      (strcasecmp(cli_input.c_str(), "login") == 0) serialized_input = c_login(&loggedUser);
         
          else    {std::cout << "ERR: Pls log in to continue" << std::endl; continue;}
          fflush(stdout);      
@@ -139,11 +139,11 @@ int main(int argc, char **argv) {
          fflush(stdout);
 
          //Parsing users input
-         if     (cli_input == "send")  serialized_input = c_send(loggedUser);
-         else if(cli_input == "list")  serialized_input = c_list(loggedUser); 
-         else if(cli_input == "read")  serialized_input = c_read(loggedUser);
-         else if(cli_input == "del")   serialized_input = c_del (loggedUser);
-         else if(cli_input == "quit")  break;
+         if     (strcasecmp(cli_input.c_str(), "send") == 0)  serialized_input = c_send(loggedUser);
+         else if(strcasecmp(cli_input.c_str(), "list") == 0)  serialized_input = c_list(loggedUser); 
+         else if(strcasecmp(cli_input.c_str(), "read") == 0)  serialized_input = c_read(loggedUser);
+         else if(strcasecmp(cli_input.c_str(), "del") == 0)   serialized_input = c_del (loggedUser);
+         else if(strcasecmp(cli_input.c_str(), "quit") == 0)  break;
          else serialized_input = cli_input + " ";
          fflush(stdout);
          
