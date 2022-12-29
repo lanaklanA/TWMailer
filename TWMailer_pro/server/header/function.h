@@ -51,7 +51,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
 
 ///////////////////////////////////////////////////////////////////////////////
 // Helper
-void create_msg_file(std::string filePath, struct msg recv_msg);
+void create_msg_file(std::string dirPath, std::string filePath, struct msg recv_msg, int current_socket);
 bool is_auth(struct credential user);
 struct blacklist fetch_infos(std::string username);
 void add_attempt(std::string username);

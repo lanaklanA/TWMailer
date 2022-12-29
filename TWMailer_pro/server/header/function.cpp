@@ -235,13 +235,13 @@ void s_send(struct msg recv_msg, int current_socket, std::string spoolDir) {
    
    mkdir(basePath.c_str(), 0700);
    mkdir(dirPath.c_str(), 0700);
-   create_msg_file(filePath, recv_msg);
+   create_msg_file(dirPath, filePath, recv_msg, current_socket);
 
    dirPath = basePath + "/" + recv_msg.sender;
    filePath = dirPath + "/" + recv_msg.subject;
 
    mkdir(dirPath.c_str(), 0700);
-   create_msg_file(filePath, recv_msg);
+   create_msg_file(dirPath, filePath, recv_msg, current_socket);
 
    send(current_socket, "OK", 3, 0);
 }
@@ -334,7 +334,30 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
 
 ///////////////////////////////////////////////////////////////////////////////
 // Helper
-void create_msg_file(std::string filePath, struct msg recv_msg) {
+
+void create_msg_file(std::string dirPath, std::string filePath, struct msg recv_msg, int current_socket) {
+   DIR *folder;
+   struct dirent *entry;
+   int count;
+
+   if((folder = opendir(dirPath.c_str())) == NULL) {
+      std::cerr << "Unable to read directory" << std::endl;
+      std::string errorMessage = "ERR: Username does not exits";
+      send(current_socket, errorMessage.c_str(), errorMessage.length(), 0);
+      return;
+   }
+
+   while((entry = readdir(folder))) {
+      std::string fileName = entry->d_name;
+      if(fileName.find(recv_msg.subject) != std::string::npos) {
+         count++;
+      }
+   }
+
+   if(count > 1) {
+      filePath += "(" + std::to_string(count-1) + ")";
+   }
+
    std::ofstream MyFile(filePath.c_str());
    MyFile << recv_msg.sender   << std::endl << std::endl 
           << recv_msg.receiver << std::endl << std::endl 
