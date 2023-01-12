@@ -68,7 +68,7 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
    int size;
    char buffer[BUF];
    struct msg mail;
- 
+   printf("asdasd");
    strcpy(buffer, "Welcome to myserver!\r\nPlease enter your commands...\r\n");
    if (send(current_socket, buffer, strlen(buffer), 0) == -1)   {
       perror("send failed");

@@ -24,6 +24,12 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <thread>
+#include <mutex>
+
+///////////////////////////////////////////////////////////////////////////////
+// Globale Variable
+std::mutex fileMutex;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Own Headers Includes
@@ -93,25 +99,20 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
          break;
       }
      
-
       if (buffer[size - 2] == '\r' && buffer[size - 1] == '\n') size -= 2;
       else if (buffer[size - 1] == '\n')                        --size;    
       buffer[size] = '\0';
         
-
       std::string cli_command(buffer);
       std::string command = cli_command.substr(cli_command.find_first_of('[')+1, cli_command.find_first_of(']')-1);
       std::cout << "Message/Command received: " << cli_command << std::endl; // ignore error
       
-
       if      (strcasecmp(command.c_str(), "login") == 0 && !is_auth(loggedUser))  loggedUser = s_login(fetch_usr_pwd(cli_command), current_socket);
       else if (strcasecmp(command.c_str(), "send") == 0 && is_auth(loggedUser))    s_send(fetch_msg_content(cli_command, loggedUser), current_socket, spoolDir);
       else if (strcasecmp(command.c_str(), "list") == 0 && is_auth(loggedUser))    s_list(cli_command.substr(7, cli_command.find_last_of(':')-7), current_socket, spoolDir);
       else if (strcasecmp(command.c_str(), "read") == 0 && is_auth(loggedUser))    s_read_or_del(1, fetch_username_msg_number(cli_command), current_socket, spoolDir);
       else if (strcasecmp(command.c_str(), "del") == 0  && is_auth(loggedUser))    s_read_or_del(2, fetch_username_msg_number(cli_command), current_socket, spoolDir);
       else                                                                    send(current_socket, "ERR: Command not found", 23, 0);
-
-
 
    } while (!abortRequested);
 
@@ -229,6 +230,8 @@ struct credential s_login(struct credential crd, int current_socket) {
 
 
 void s_send(struct msg recv_msg, int current_socket, std::string spoolDir) {
+   fileMutex.lock();
+
    std::string basePath = "./spoolDir/" + spoolDir;
    std::string dirPath = basePath + "/" + recv_msg.receiver;
    std::string filePath = dirPath + "/" + recv_msg.subject;
@@ -244,9 +247,13 @@ void s_send(struct msg recv_msg, int current_socket, std::string spoolDir) {
    create_msg_file(dirPath, filePath, recv_msg, current_socket);
 
    send(current_socket, "OK", 3, 0);
+
+   fileMutex.unlock();
 }
 
 void s_list(std::string username, int current_socket, std::string spoolDir) {
+   fileMutex.lock();
+
    DIR *folder;
    struct dirent *entry;
    int count = 0;
@@ -273,9 +280,13 @@ void s_list(std::string username, int current_socket, std::string spoolDir) {
    }
    
    send(current_socket, output.c_str(), strlen(output.c_str()), 0);
+
+   fileMutex.unlock();
 }
 
 void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::string spoolDir) {
+   fileMutex.lock();
+
    DIR *folder;
    int count = 0;
    struct dirent *entry = NULL;
@@ -330,12 +341,15 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
       std::remove(filePath.c_str());
       send(current_socket, "OK", 3, 0);
    }
+
+   fileMutex.unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Helper
 
 void create_msg_file(std::string dirPath, std::string filePath, struct msg recv_msg, int current_socket) {
+   fileMutex.lock();
    DIR *folder;
    struct dirent *entry;
    int count;
@@ -364,6 +378,8 @@ void create_msg_file(std::string dirPath, std::string filePath, struct msg recv_
           << recv_msg.subject  << std::endl << std::endl 
           << recv_msg.content;
    MyFile.close();
+
+   fileMutex.unlock();
 }
 
 bool is_auth(struct credential user) {

@@ -49,6 +49,9 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "typeinfo": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "thread": "cpp"
     }
 }
