@@ -114,7 +114,9 @@ int main(int argc, char **argv) {
       }
 
       printf("Client connected from %s:%d...\n", inet_ntoa(cliaddress.sin_addr), ntohs(cliaddress.sin_port));
-          
+      
+      
+      
       std::thread bread (clientCommunication, new_socket, argv[2]); // returnValue can be ignored
       bread.detach();
       new_socket = -1;

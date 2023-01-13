@@ -39,7 +39,6 @@ std::mutex fileMutex;
 ///////////////////////////////////////////////////////////////////////////////
 // Signal
 void signalHandler(int sig) {
-
    if (sig == SIGINT) {
       printf("abort Requested... "); // ignore error
       abortRequested = 1;
@@ -107,12 +106,14 @@ void *clientCommunication(int current_socket, std::string spoolDir) {
       std::string command = cli_command.substr(cli_command.find_first_of('[')+1, cli_command.find_first_of(']')-1);
       std::cout << "Message/Command received: " << cli_command << std::endl; // ignore error
       
+      fileMutex.lock();
       if      (strcasecmp(command.c_str(), "login") == 0 && !is_auth(loggedUser))  loggedUser = s_login(fetch_usr_pwd(cli_command), current_socket);
       else if (strcasecmp(command.c_str(), "send") == 0 && is_auth(loggedUser))    s_send(fetch_msg_content(cli_command, loggedUser), current_socket, spoolDir);
       else if (strcasecmp(command.c_str(), "list") == 0 && is_auth(loggedUser))    s_list(cli_command.substr(7, cli_command.find_last_of(':')-7), current_socket, spoolDir);
       else if (strcasecmp(command.c_str(), "read") == 0 && is_auth(loggedUser))    s_read_or_del(1, fetch_username_msg_number(cli_command), current_socket, spoolDir);
       else if (strcasecmp(command.c_str(), "del") == 0  && is_auth(loggedUser))    s_read_or_del(2, fetch_username_msg_number(cli_command), current_socket, spoolDir);
-      else                                                                    send(current_socket, "ERR: Command not found", 23, 0);
+      else                                                                         send(current_socket, "ERR: Command not found", 23, 0);
+      fileMutex.unlock();
 
    } while (!abortRequested);
 
@@ -230,8 +231,6 @@ struct credential s_login(struct credential crd, int current_socket) {
 
 
 void s_send(struct msg recv_msg, int current_socket, std::string spoolDir) {
-   fileMutex.lock();
-
    std::string basePath = "./spoolDir/" + spoolDir;
    std::string dirPath = basePath + "/" + recv_msg.receiver;
    std::string filePath = dirPath + "/" + recv_msg.subject;
@@ -247,12 +246,9 @@ void s_send(struct msg recv_msg, int current_socket, std::string spoolDir) {
    create_msg_file(dirPath, filePath, recv_msg, current_socket);
 
    send(current_socket, "OK", 3, 0);
-
-   fileMutex.unlock();
 }
 
 void s_list(std::string username, int current_socket, std::string spoolDir) {
-   fileMutex.lock();
 
    DIR *folder;
    struct dirent *entry;
@@ -272,6 +268,8 @@ void s_list(std::string username, int current_socket, std::string spoolDir) {
       count++;
       messages.append("\n[" + std::to_string(count) + "] " + entry->d_name);
    }
+
+
    output = "[Count of Messages of the User: " + std::to_string(count) + "]" + messages;
    if(count == 0) {
       std::string errorMessage = "ERR: No messages found from user";
@@ -281,11 +279,9 @@ void s_list(std::string username, int current_socket, std::string spoolDir) {
    
    send(current_socket, output.c_str(), strlen(output.c_str()), 0);
 
-   fileMutex.unlock();
 }
 
 void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::string spoolDir) {
-   fileMutex.lock();
 
    DIR *folder;
    int count = 0;
@@ -342,14 +338,12 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
       send(current_socket, "OK", 3, 0);
    }
 
-   fileMutex.unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Helper
 
 void create_msg_file(std::string dirPath, std::string filePath, struct msg recv_msg, int current_socket) {
-   fileMutex.lock();
    DIR *folder;
    struct dirent *entry;
    int count;
@@ -379,7 +373,7 @@ void create_msg_file(std::string dirPath, std::string filePath, struct msg recv_
           << recv_msg.content;
    MyFile.close();
 
-   fileMutex.unlock();
+   
 }
 
 bool is_auth(struct credential user) {
