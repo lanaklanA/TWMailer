@@ -346,7 +346,7 @@ void s_read_or_del(int type, struct msg_u_mn recv_msg, int current_socket, std::
 void create_msg_file(std::string dirPath, std::string filePath, struct msg recv_msg, int current_socket) {
    DIR *folder;
    struct dirent *entry;
-   int count;
+   int count = 1;
 
    if((folder = opendir(dirPath.c_str())) == NULL) {
       std::cerr << "Unable to read directory" << std::endl;
